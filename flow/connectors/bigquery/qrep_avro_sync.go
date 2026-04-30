@@ -100,7 +100,7 @@ func (s *QRepAvroSyncMethod) SyncRecords(
 		slog.String("dstTableName", rawTableName))
 
 	if err := s.connector.ReplayTableSchemaDeltas(
-		ctx, req.Settings, req.FlowJobName, req.TableMappings, req.Records.SchemaDeltas, nil,
+		ctx, req.FlowJobName, req.TableMappings, req.Records.SchemaDeltas, nil,
 	); err != nil {
 		return nil, fmt.Errorf("failed to sync schema changes: %w", err)
 	}

@@ -48,7 +48,6 @@ func (c *ClickHouseConnector) CleanupSetupNormalizedTables(_ context.Context, _ 
 func (c *ClickHouseConnector) SetupNormalizedTable(
 	ctx context.Context,
 	tx any,
-	settings *internal.Settings,
 	config *protos.SetupNormalizedTableBatchInput,
 	destinationTableIdentifier string,
 	sourceTableSchema *protos.TableSchema,
@@ -63,7 +62,7 @@ func (c *ClickHouseConnector) SetupNormalizedTable(
 	}
 	normalizedTableCreateSQL, err := c.generateCreateTableSQLForNormalizedTable(
 		ctx,
-		settings,
+		c.Settings,
 		config,
 		destinationTableIdentifier,
 		sourceTableSchema,

@@ -30,8 +30,9 @@ import (
 
 type KafkaConnector struct {
 	*metadataStore.PostgresMetadata
-	client *kgo.Client
-	logger log.Logger
+	Settings *internal.Settings
+	client   *kgo.Client
+	logger   log.Logger
 }
 
 type kgoTemporalLogger struct {
@@ -143,6 +144,7 @@ func NewKafkaConnector(
 
 	return &KafkaConnector{
 		PostgresMetadata: pgMetadata,
+		Settings:         settings,
 		client:           client,
 		logger:           logger,
 	}, nil
@@ -163,7 +165,7 @@ func (c *KafkaConnector) CreateRawTable(ctx context.Context, req *protos.CreateR
 	return &protos.CreateRawTableOutput{TableIdentifier: "n/a"}, nil
 }
 
-func (c *KafkaConnector) ReplayTableSchemaDeltas(_ context.Context, _ *internal.Settings,
+func (c *KafkaConnector) ReplayTableSchemaDeltas(_ context.Context,
 	flowJobName string, _ []*protos.TableMapping, schemaDeltas []*protos.TableSchemaDelta, _ []string,
 ) error {
 	return nil

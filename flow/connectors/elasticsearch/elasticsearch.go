@@ -39,12 +39,14 @@ type tableUpsertCol struct {
 
 type ElasticsearchConnector struct {
 	*metadataStore.PostgresMetadata
+	Settings                 *internal.Settings
 	client                   *elasticsearch.Client
 	logger                   log.Logger
 	hushWarnUpsertColMissing map[tableUpsertCol]struct{}
 }
 
 func NewElasticsearchConnector(ctx context.Context,
+	settings *internal.Settings,
 	config *protos.ElasticsearchConfig,
 ) (*ElasticsearchConnector, error) {
 	esCfg := &elasticsearch.Config{
@@ -72,6 +74,7 @@ func NewElasticsearchConnector(ctx context.Context,
 
 	return &ElasticsearchConnector{
 		PostgresMetadata:         pgMetadata,
+		Settings:                 settings,
 		client:                   esClient,
 		logger:                   internal.LoggerFromCtx(ctx),
 		hushWarnUpsertColMissing: make(map[tableUpsertCol]struct{}),
@@ -99,7 +102,7 @@ func (esc *ElasticsearchConnector) CreateRawTable(ctx context.Context,
 }
 
 // we handle schema changes by not handling them since no mapping is being enforced right now
-func (esc *ElasticsearchConnector) ReplayTableSchemaDeltas(ctx context.Context, settings *internal.Settings,
+func (esc *ElasticsearchConnector) ReplayTableSchemaDeltas(ctx context.Context,
 	flowJobName string, _ []*protos.TableMapping, schemaDeltas []*protos.TableSchemaDelta, _ []string,
 ) error {
 	return nil

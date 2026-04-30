@@ -26,12 +26,14 @@ import (
 
 type PubSubConnector struct {
 	*metadataStore.PostgresMetadata
-	client *pubsub.Client
-	logger log.Logger
+	Settings *internal.Settings
+	client   *pubsub.Client
+	logger   log.Logger
 }
 
 func NewPubSubConnector(
 	ctx context.Context,
+	settings *internal.Settings,
 	config *protos.PubSubConfig,
 ) (*PubSubConnector, error) {
 	sa := utils.GcpServiceAccountFromProto(config.ServiceAccount)
@@ -47,6 +49,7 @@ func NewPubSubConnector(
 
 	return &PubSubConnector{
 		client:           client,
+		Settings:         settings,
 		PostgresMetadata: pgMetadata,
 		logger:           internal.LoggerFromCtx(ctx),
 	}, nil
@@ -73,7 +76,7 @@ func (c *PubSubConnector) CreateRawTable(ctx context.Context, req *protos.Create
 	return &protos.CreateRawTableOutput{TableIdentifier: "n/a"}, nil
 }
 
-func (c *PubSubConnector) ReplayTableSchemaDeltas(_ context.Context, _ *internal.Settings,
+func (c *PubSubConnector) ReplayTableSchemaDeltas(_ context.Context,
 	flowJobName string, _ []*protos.TableMapping, schemaDeltas []*protos.TableSchemaDelta, _ []string,
 ) error {
 	return nil

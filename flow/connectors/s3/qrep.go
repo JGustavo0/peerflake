@@ -21,22 +21,18 @@ func (c *S3Connector) SyncQRepRecords(
 	partition *protos.QRepPartition,
 	stream *model.QRecordStream,
 ) (int64, shared.QRepWarnings, error) {
-	settings, err := internal.LoadSettings(ctx, config.Env)
-	if err != nil {
-		return 0, nil, err
-	}
 	schema, err := stream.Schema()
 	if err != nil {
 		return 0, nil, err
 	}
 
 	dstTableName := config.DestinationTableIdentifier
-	avroSchema, err := getAvroSchema(ctx, settings, dstTableName, schema)
+	avroSchema, err := getAvroSchema(ctx, c.Settings, dstTableName, schema)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	numRecords, err := c.writeToAvroFile(ctx, settings, stream, avroSchema, partition.PartitionId, config.FlowJobName)
+	numRecords, err := c.writeToAvroFile(ctx, c.Settings, stream, avroSchema, partition.PartitionId, config.FlowJobName)
 	if err != nil {
 		return 0, nil, err
 	}

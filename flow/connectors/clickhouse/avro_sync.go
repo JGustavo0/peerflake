@@ -183,11 +183,7 @@ func (s *ClickHouseAvroSyncMethod) pushDataToS3ForSnapshot(
 	destTypeConversions map[string]types.TypeConversion,
 	numericTruncator model.SnapshotTableNumericTruncator,
 ) ([]utils.AvroFile, int64, error) {
-	settings, err := internal.LoadSettings(ctx, config.Env)
-	if err != nil {
-		return nil, 0, err
-	}
-	avroSchema, err := s.getAvroSchema(ctx, settings, dstTableName, schema, columnNameAvroFieldMap)
+	avroSchema, err := s.getAvroSchema(ctx, s.Settings, dstTableName, schema, columnNameAvroFieldMap)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -236,7 +232,7 @@ func (s *ClickHouseAvroSyncMethod) pushDataToS3ForSnapshot(
 			}
 
 			substream, sizeTracker := createChunkedSubstream(&done)
-			subFile, err := s.writeToAvroFile(ctx, settings, substream, sizeTracker, avroSchema,
+			subFile, err := s.writeToAvroFile(ctx, s.Settings, substream, sizeTracker, avroSchema,
 				fmt.Sprintf("%s.%06d", partition.PartitionId, chunkNum),
 				config.FlowJobName, destTypeConversions, numericTruncator,
 			)
@@ -253,7 +249,7 @@ func (s *ClickHouseAvroSyncMethod) pushDataToS3ForSnapshot(
 		}
 	} else {
 		avroFile, err := s.writeToAvroFile(
-			ctx, settings, stream, nil, avroSchema, partition.PartitionId, config.FlowJobName,
+			ctx, s.Settings, stream, nil, avroSchema, partition.PartitionId, config.FlowJobName,
 			destTypeConversions, numericTruncator,
 		)
 		if err != nil {
@@ -278,22 +274,18 @@ func (s *ClickHouseAvroSyncMethod) pushS3DataToClickHouseForSnapshot(
 	columnNameAvroFieldMap map[string]string,
 	config *protos.QRepConfig,
 ) error {
-	settings, err := internal.LoadSettings(ctx, config.Env)
-	if err != nil {
-		return err
-	}
 	insertConfig := &insertFromTableFunctionConfig{
 		destinationTable: config.DestinationTableIdentifier,
 		schema:           schema,
 		columnNameMap:    columnNameAvroFieldMap,
 		excludedColumns:  config.Exclude,
 		config:           config,
-		settings:         settings,
+		settings:         s.Settings,
 		connector:        s.ClickHouseConnector,
 		logger:           s.logger,
 	}
 
-	numParts := max(settings.ClickHouseInitialLoadPartsPerPartition, 1)
+	numParts := max(s.Settings.ClickHouseInitialLoadPartsPerPartition, 1)
 
 	chSettings := clickhouse.NewCHSettings(s.chVersion)
 	chSettings.Add(clickhouse.SettingThrowOnMaxPartitionsPerInsertBlock, "0")

@@ -103,16 +103,12 @@ func (s *SnowflakeAvroSyncHandler) SyncQRepRecords(
 	}
 	s.logger.Info("sync function called and schema acquired", partitionLog)
 
-	settings, err := internal.LoadSettings(ctx, config.Env)
-	if err != nil {
-		return 0, nil, err
-	}
-	avroSchema, err := s.getAvroSchema(ctx, settings, dstTableName, schema)
+	avroSchema, err := s.getAvroSchema(ctx, s.Settings, dstTableName, schema)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	avroFile, err := s.writeToAvroFile(ctx, settings, stream, avroSchema, partition.PartitionId, config.FlowJobName)
+	avroFile, err := s.writeToAvroFile(ctx, s.Settings, stream, avroSchema, partition.PartitionId, config.FlowJobName)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -120,7 +116,7 @@ func (s *SnowflakeAvroSyncHandler) SyncQRepRecords(
 
 	stage := s.getStageNameForJob(config.FlowJobName)
 
-	if err := s.putFileToStage(ctx, settings, avroFile, stage); err != nil {
+	if err := s.putFileToStage(ctx, s.Settings, avroFile, stage); err != nil {
 		return 0, nil, err
 	}
 	s.logger.Info("Put file to stage in Avro sync for snowflake", partitionLog)

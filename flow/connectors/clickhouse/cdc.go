@@ -130,7 +130,7 @@ func (c *ClickHouseConnector) syncRecordsViaAvro(
 	warnings := numericTruncator.Warnings()
 
 	if err := c.ReplayTableSchemaDeltas(
-		ctx, req.Settings, req.FlowJobName, req.TableMappings, req.Records.SchemaDeltas, req.Flags,
+		ctx, req.FlowJobName, req.TableMappings, req.Records.SchemaDeltas, req.Flags,
 	); err != nil {
 		return nil, fmt.Errorf("failed to sync schema changes: %w", err)
 	}
@@ -217,7 +217,6 @@ func extractSingleQuotedStrings(s string) []string {
 
 func (c *ClickHouseConnector) ReplayTableSchemaDeltas(
 	ctx context.Context,
-	settings *internal.Settings,
 	flowJobName string,
 	tableMappings []*protos.TableMapping,
 	schemaDeltas []*protos.TableSchemaDelta,
@@ -258,7 +257,7 @@ func (c *ClickHouseConnector) ReplayTableSchemaDeltas(
 		for _, addedColumn := range schemaDelta.AddedColumns {
 			qvKind := types.QValueKind(addedColumn.Type)
 			clickHouseColType, err := qvalue.ToDWHColumnType(
-				ctx, qvKind, settings, protos.DBType_CLICKHOUSE, c.chVersion, addedColumn, schemaDelta.NullableEnabled, flags,
+				ctx, qvKind, c.Settings, protos.DBType_CLICKHOUSE, c.chVersion, addedColumn, schemaDelta.NullableEnabled, flags,
 			)
 			if err != nil {
 				return fmt.Errorf("failed to convert column type %s to ClickHouse type: %w", addedColumn.Type, err)
