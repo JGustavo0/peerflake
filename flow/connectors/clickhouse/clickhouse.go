@@ -110,7 +110,7 @@ func createStagingStore(
 ) (utils.StagingStore, *utils.ClickHouseS3Credentials, error) {
 	// If user provided explicit S3 config, always use S3 staging.
 	if config.S3 != nil || config.S3Path != "" || config.AccessKeyId != "" {
-		return createS3StagingStore(ctx, env, config)
+		return createS3StagingStore(ctx, env, config, "")
 	}
 
 	// Check environment-based staging provider config.
